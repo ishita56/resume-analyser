@@ -4,7 +4,10 @@ export default function ResumeResult({
   analysis,
 }) {
 
-  console.log("ANALYSIS DATA:", analysis);
+  console.log(
+    "ANALYSIS DATA:",
+    analysis
+  );
 
   if (!analysis) {
     return (
@@ -12,22 +15,24 @@ export default function ResumeResult({
     );
   }
 
-  const result = analysis?.data || {};
+  // ✅ FIXED
+  const result =
+    analysis?.data || {};
 
-const {
-  score = 0,
-  matchedSkills = [],
-  missingSkills = [],
-  suggestions = [],
-  aiFeedback = "No AI feedback available",
-} = result;
+  const {
+    score = 0,
+    matchedSkills = [],
+    missingSkills = [],
+    suggestions = [],
+    aiFeedback =
+      "No AI feedback available",
+  } = result;
 
- 
   const downloadPDF = () => {
 
     const doc = new jsPDF();
 
-  
+    // TITLE
     doc.setFontSize(24);
 
     doc.setTextColor(
@@ -42,7 +47,7 @@ const {
       25
     );
 
-   
+    // LINE
     doc.setDrawColor(200);
 
     doc.line(
@@ -52,7 +57,7 @@ const {
       32
     );
 
-
+    // SCORE
     doc.setFontSize(18);
 
     doc.setTextColor(
@@ -67,7 +72,7 @@ const {
       50
     );
 
-  
+    // MATCHED SKILLS
     doc.setFontSize(16);
 
     doc.setTextColor(
@@ -90,18 +95,32 @@ const {
       0
     );
 
-    matchedSkills.forEach(
-      (skill, index) => {
+    if (
+      matchedSkills.length === 0
+    ) {
+      doc.text(
+        "No matched skills found",
+        30,
+        80
+      );
+    } else {
+      matchedSkills.forEach(
+        (
+          skill,
+          index
+        ) => {
 
-        doc.text(
-          `• ${skill}`,
-          30,
-          80 + index * 8
-        );
-      }
-    );
+          doc.text(
+            `• ${skill}`,
+            30,
+            80 +
+              index * 8
+          );
+        }
+      );
+    }
 
-    
+    // MISSING SKILLS
     let missingY =
       90 +
       matchedSkills.length * 8;
@@ -128,20 +147,33 @@ const {
       0
     );
 
-    missingSkills.forEach(
-      (skill, index) => {
+    if (
+      missingSkills.length === 0
+    ) {
+      doc.text(
+        "No missing skills found",
+        30,
+        missingY + 10
+      );
+    } else {
+      missingSkills.forEach(
+        (
+          skill,
+          index
+        ) => {
 
-        doc.text(
-          `• ${skill}`,
-          30,
-          missingY +
-            10 +
-            index * 8
-        );
-      }
-    );
+          doc.text(
+            `• ${skill}`,
+            30,
+            missingY +
+              10 +
+              index * 8
+          );
+        }
+      );
+    }
 
-    
+    // FEEDBACK
     let feedbackY =
       missingY +
       20 +
@@ -184,7 +216,7 @@ const {
       feedbackY + 10
     );
 
-
+    // FOOTER
     doc.setFontSize(10);
 
     doc.setTextColor(120);
@@ -203,11 +235,11 @@ const {
   return (
 
     <section
-  id="features"
-  className="space-y-8 scroll-mt-24"
->
+      id="features"
+      className="space-y-8 scroll-mt-24"
+    >
 
-     
+      {/* TITLE */}
       <div className="text-center">
 
         <h2 className="text-4xl font-bold text-gray-900">
@@ -220,7 +252,7 @@ const {
 
       </div>
 
-     
+      {/* SCORE */}
       <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/40">
 
         <h3 className="text-2xl font-bold text-gray-900 mb-6">
@@ -258,10 +290,10 @@ const {
 
       </div>
 
-   
+      {/* SKILLS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-      
+        {/* MATCHING */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/40">
 
           <h3 className="text-2xl font-bold text-gray-900 mb-6">
@@ -291,8 +323,7 @@ const {
             ) : (
 
               <p className="text-gray-500">
-                No matched skills
-                found
+                No matched skills found
               </p>
             )}
 
@@ -300,7 +331,7 @@ const {
 
         </div>
 
-       
+        {/* MISSING */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/40">
 
           <h3 className="text-2xl font-bold text-gray-900 mb-6">
@@ -330,8 +361,7 @@ const {
             ) : (
 
               <p className="text-gray-500">
-                No missing skills
-                found
+                No missing skills found
               </p>
             )}
 
@@ -341,7 +371,7 @@ const {
 
       </div>
 
-   
+      {/* PDF BUTTON */}
       <button
         onClick={downloadPDF}
         className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:scale-105 transition duration-300 shadow-lg"
@@ -349,7 +379,7 @@ const {
         Download PDF Report
       </button>
 
-     
+      {/* FEEDBACK */}
       <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl p-8 shadow-2xl text-white">
 
         <h3 className="text-2xl font-bold mb-5">
