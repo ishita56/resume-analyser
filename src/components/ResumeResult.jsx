@@ -15,18 +15,14 @@ export default function ResumeResult({
     );
   }
 
-  // ✅ FIXED
-  const result =
-    analysis?.data || {};
-
+ 
   const {
-    score = 0,
-    matchedSkills = [],
-    missingSkills = [],
-    suggestions = [],
-    aiFeedback =
-      "No AI feedback available",
-  } = result;
+  score = 0,
+  matchedSkills = [],
+  missingSkills = [],
+  suggestions = [],
+  aiFeedback = "No AI feedback available",
+} = analysis || {};
 
   const downloadPDF = () => {
 
