@@ -5,7 +5,7 @@ const mammoth = require("mammoth");
 const multer = require("multer");
 const pdf = require("pdf-parse/lib/pdf-parse.js");
 
-const Skill = require("../models/Skill");
+const Skill = require("../models/skill");
 const ResumeAnalysis = require("../models/ResumeAnalysis");
 
 const {
