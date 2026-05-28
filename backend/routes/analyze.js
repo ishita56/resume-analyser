@@ -6,7 +6,7 @@ const multer = require("multer");
 const pdf = require("pdf-parse/lib/pdf-parse.js");
 
 const Skill = require("../models/skill");
-const ResumeAnalysis = require("../models/ResumeAnalysis");
+const ResumeAnalysis = require("../models/resumeanalysis");
 
 const {
   generateSuggestions,
