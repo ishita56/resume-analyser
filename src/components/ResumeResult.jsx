@@ -4,6 +4,8 @@ export default function ResumeResult({
   analysis,
 }) {
 
+  console.log("ANALYSIS DATA:", analysis);
+
   if (!analysis) {
     return (
       <p>No data available</p>
