@@ -10,14 +10,15 @@ export default function ResumeResult({
     );
   }
 
-  const {
-    score = 0,
-    matchedSkills = [],
-    missingSkills = [],
-    suggestions = [],
-    aiFeedback =
-      "No AI feedback available",
-  } = analysis;
+  const result = analysis?.data || {};
+
+const {
+  score = 0,
+  matchedSkills = [],
+  missingSkills = [],
+  suggestions = [],
+  aiFeedback = "No AI feedback available",
+} = result;
 
  
   const downloadPDF = () => {
