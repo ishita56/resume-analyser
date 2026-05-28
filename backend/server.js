@@ -23,10 +23,10 @@ const startServer = async () => {
 
   try {
 
-    // CONNECT DATABASE
+    
     await connectDB();
 
-    // ROUTES
+    
     app.use("/api", analyzeRoute);
 
     app.use(
@@ -34,7 +34,7 @@ const startServer = async () => {
       authRoutes
     );
 
-    // TEST ROUTE
+    
     app.get("/", (req, res) => {
 
       res.send(
@@ -42,14 +42,13 @@ const startServer = async () => {
       );
     });
 
-    // SERVER START
+   
     app.listen(5000, () => {
 
       console.log(
-        "Server Running on http://localhost:5000"
+        "Server Running on https://resume-analyser-prld.onrender.com"
       );
     });
-
   } catch (error) {
 
     console.log(
