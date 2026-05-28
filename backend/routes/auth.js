@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs");
 
 const jwt = require("jsonwebtoken");
 
-const User = require("../models/User");
+const User = require("../models/user");
 
 
 router.post("/signup", async (req, res) => {
@@ -44,7 +44,7 @@ router.post("/signup", async (req, res) => {
       password: hashedPassword,
     });
 
-    // TOKEN GENERATE
+    
     const token = jwt.sign(
 
       { id: user._id },
@@ -75,7 +75,7 @@ router.post("/signup", async (req, res) => {
 });
 
 
-// LOGIN
+
 router.post("/login", async (req, res) => {
 
   try {
