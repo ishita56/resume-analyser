@@ -19,7 +19,7 @@ export default function History() {
 
         const response =
           await axios.get(
-            "http://localhost:5000/api/history"
+            "https://resume-analyser-prld.onrender.com/api/history"
           );
 
         setHistory(

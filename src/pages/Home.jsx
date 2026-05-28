@@ -92,7 +92,7 @@ export default function Home() {
 
         const response =
           await axios.post(
-            "http://localhost:5000/api/analyze",
+            "https://resume-analyser-prld.onrender.com/api/analyze",
             formData
           );
 
