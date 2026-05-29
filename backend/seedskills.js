@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
-const Skill = require("./models/Skill");
+const Skill = require("./models/skill");
 
 const skills = [
   {

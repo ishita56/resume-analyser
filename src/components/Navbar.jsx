@@ -33,19 +33,7 @@ export default function Navbar() {
         ) : (
 
           <>
-            <Link
-              to="/login"
-              className="bg-indigo-500 text-white px-4 py-2 rounded-xl"
-            >
-              Login
-            </Link>
-
-            <Link
-              to="/signup"
-              className="bg-green-500 text-white px-4 py-2 rounded-xl"
-            >
-              Signup
-            </Link>
+           
           </>
 
         )}

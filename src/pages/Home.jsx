@@ -87,14 +87,20 @@ export default function Home() {
         "jobdesc",
         jobdesc
       );
-
+console.log("RESUME:", resume);
+ console.log("JOBDESC:", jobdesc);
+  console.log("FORM DATA READY"); 
       try {
 
         const response =
           await axios.post(
             "https://resume-analyser-prld.onrender.com/api/analyze",
             formData
-          );
+          ,
+          {
+            headers: { "Content-Type": "multipart/form-data" }
+          }
+        );
 
         setAnalysis(
           response.data.data

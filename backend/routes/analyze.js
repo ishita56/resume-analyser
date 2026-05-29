@@ -1,15 +1,21 @@
+
 const express = require("express");
+
 const router = express.Router();
 
 const mammoth = require("mammoth");
+
 const multer = require("multer");
+
 const pdf = require("pdf-parse/lib/pdf-parse.js");
 
 const Skill = require("../models/skill");
+
 const ResumeAnalysis = require("../models/resumeanalysis");
 
 const {
   generateSuggestions,
+  extractSkillsWithAI,
 } = require("../utils/groq");
 
 const storage = multer.memoryStorage();
@@ -18,8 +24,8 @@ const upload = multer({ storage });
 
 let dbSkillsCache = [];
 
-
 async function loadSkills() {
+
   dbSkillsCache = await Skill.find();
 
   console.log(
@@ -29,15 +35,19 @@ async function loadSkills() {
 }
 
 const skillMap = {
+
   "react.js": "react",
+
   reactjs: "react",
 
   "node.js": "node",
+
   nodejs: "node",
 
   "express.js": "express",
 
   "restful api": "rest api",
+
   "restful apis": "rest api",
 };
 
@@ -72,6 +82,7 @@ function normalizeText(text) {
 }
 
 function escapeRegex(string) {
+
   return string.replace(
     /[.*+?^${}()|[\]\\]/g,
     "\\$&"
@@ -131,6 +142,7 @@ function normalize(skill) {
 
 router.post(
   "/analyze",
+
   upload.single("resume"),
 
   async (req, res) => {
@@ -139,15 +151,17 @@ router.post(
 
       console.log("Route hit");
 
-      // FIX
       if (dbSkillsCache.length === 0) {
+
         await loadSkills();
       }
 
       if (!req.file) {
 
         return res.status(400).json({
+
           success: false,
+
           message:
             "No file uploaded",
         });
@@ -155,7 +169,6 @@ router.post(
 
       let text = "";
 
-    
       if (
         req.file.mimetype ===
         "application/pdf"
@@ -166,10 +179,8 @@ router.post(
         );
 
         text = data.text;
-
       }
 
-      
       else if (
 
         req.file.mimetype ===
@@ -183,42 +194,126 @@ router.post(
           });
 
         text = result.value;
-
       }
 
       else {
 
         return res.status(400).json({
+
           success: false,
+
           message:
             "Only PDF and DOCX files are supported",
         });
       }
 
       text = text.replace(/\r\n/g, " ");
+
       text = text.replace(/\n/g, " ");
+
       text = text.replace(/\s+/g, " ");
 
-      console.log("Resume Text:", text);
+      console.log(
+        "Resume Text:",
+        text
+      );
 
       const jdtext =
         req.body.jobdesc || "";
 
-      const resumeskills =
+      // -----------------------------
+      // RESUME SKILLS
+      // -----------------------------
+
+      const dbResumeSkills =
         await extractSkills(text);
 
-      const jdSkills =
+      const aiResumeSkills =
+        await extractSkillsWithAI(
+          text
+        );
+
+      const filteredAiResumeSkills =
+        aiResumeSkills.filter(
+          (skill) =>
+            skill.length > 2 &&
+            ![
+              "communication",
+              "teamwork",
+              "leadership",
+              "problem solving",
+            ].includes(skill)
+        );
+
+      const resumeskills = [
+
+        ...new Set([
+
+          ...dbResumeSkills,
+
+          ...filteredAiResumeSkills
+        ]),
+      ];
+
+      // -----------------------------
+      // JD SKILLS
+      // -----------------------------
+
+      const dbJdSkills =
         await extractSkills(jdtext);
 
+      const aiJdSkills =
+        await extractSkillsWithAI(
+          jdtext
+        );
+
+      const jdSkills = [
+
+        ...new Set([
+
+          ...dbJdSkills,
+
+          ...aiJdSkills,
+        ]),
+      ];
+
+      // -----------------------------
+      // DEBUG LOGS
+      // -----------------------------
+
       console.log(
-        "RESUME SKILLS:",
+        "DB RESUME:",
+        dbResumeSkills
+      );
+
+      console.log(
+        "AI RESUME:",
+        aiResumeSkills
+      );
+
+      console.log(
+        "FINAL RESUME:",
         resumeskills
       );
 
       console.log(
-        "JD SKILLS:",
+        "DB JD:",
+        dbJdSkills
+      );
+
+      console.log(
+        "AI JD:",
+        aiJdSkills
+      );
+
+      console.log(
+        "FINAL JD:",
         jdSkills
       );
+
+      // -----------------------------
+      // MATCHING
+      // -----------------------------
 
       const alljdSkills = [
         ...new Set(jdSkills),
@@ -229,6 +324,7 @@ router.post(
 
           resumeskills.some(
             (r) =>
+
               normalize(r) ===
               normalize(skill)
           )
@@ -240,6 +336,7 @@ router.post(
 
             !resumeskills.some(
               (r) =>
+
                 normalize(r) ===
                 normalize(skill)
             )
@@ -251,16 +348,98 @@ router.post(
       const matched =
         matchedSkills.length;
 
-      const rawScore =
-        total > 0
-          ? (matched / total) * 100
-          : 0;
+      // -----------------------------
+      // PRIORITY WEIGHTING
+      // -----------------------------
+
+      const priorityKeywords = [
+        "required",
+        "must have",
+        "mandatory",
+        "expertise",
+        "strong",
+        "proficient",
+      ];
+
+      const prioritySkills =
+        alljdSkills.filter((skill) => {
+
+          const lowerJD =
+            jdtext.toLowerCase();
+
+          return priorityKeywords.some(
+            (keyword) =>
+              lowerJD.includes(keyword) &&
+              lowerJD.includes(
+                skill.toLowerCase()
+              )
+          );
+        }).map((s) => normalize(s));
+
+      let totalWeight = 0;
+
+      let matchedWeight = 0;
+
+      alljdSkills.forEach((skill) => {
+
+        const normalizedSkill =
+          normalize(skill);
+
+        const weight =
+          prioritySkills.includes(
+            normalizedSkill
+          )
+            ? 10
+            : 4;
+
+        totalWeight += weight;
+
+        const matched =
+          resumeskills.some(
+            (r) =>
+              normalize(r) ===
+              normalizedSkill
+          );
+
+        if (matched) {
+
+          matchedWeight += weight;
+        }
+      });
 
       let score =
-        Math.round(rawScore);
+        totalWeight > 0
+          ? Math.round(
+              (matchedWeight /
+                totalWeight) *
+                100
+            )
+          : 0;
 
-      if (score < 35) score = 35;
-      if (score > 95) score = 95;
+      if (score > 95) {
+
+        score = 95;
+      }
+
+      if (
+        matchedSkills.length <= 2 &&
+        score > 40
+      ) {
+
+        score = 40;
+      }
+
+      if (
+        matchedSkills.length >= 8 &&
+        score < 75
+      ) {
+
+        score += 10;
+      }
+
+      // -----------------------------
+      // JOB ROLE
+      // -----------------------------
 
       const jobRole =
         jdtext
@@ -285,15 +464,23 @@ router.post(
 
           : "Software Engineer";
 
+      // -----------------------------
+      // AI FEEDBACK
+      // -----------------------------
+
       let aiFeedback = "";
 
       try {
 
         aiFeedback =
           await generateSuggestions(
+
             matchedSkills,
+
             missingSkills,
+
             score,
+
             jobRole
           );
 
@@ -307,6 +494,10 @@ router.post(
         aiFeedback =
           "AI suggestions unavailable.";
       }
+
+      // -----------------------------
+      // SAVE RESULT
+      // -----------------------------
 
       await ResumeAnalysis.create({
 
@@ -324,6 +515,10 @@ router.post(
 
         aiFeedback,
       });
+
+      // -----------------------------
+      // RESPONSE
+      // -----------------------------
 
       return res.status(200).json({
 
@@ -380,24 +575,31 @@ router.post(
 
 router.get(
   "/history",
+
   async (req, res) => {
 
     try {
 
       const history =
         await ResumeAnalysis.find()
-          .sort({ createdAt: -1 })
-              .limit(3);
+          .sort({
+            createdAt: -1,
+          })
+          .limit(3);
 
       res.status(200).json({
+
         success: true,
+
         history,
       });
 
     } catch (error) {
 
       res.status(500).json({
+
         success: false,
+
         message:
           "Error fetching history",
       });
@@ -406,3 +608,4 @@ router.get(
 );
 
 module.exports = router;
+
